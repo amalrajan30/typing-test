@@ -1615,6 +1615,14 @@
   dependencies:
     "@types/istanbul-lib-report" "*"
 
+"@types/jest-in-case@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@types/jest-in-case/-/jest-in-case-1.0.3.tgz#af65d145ecf184d20df115a051c25d496ac86a1a"
+  integrity sha512-M+bKsCA/oF3Bw9qSZyWHsK8sfqFtZsNXe0xV1gTK3ahFCgaqzjJkAFp84Wd8md+EshGbR9Bb6nCmu4FAiuImZw==
+  dependencies:
+    "@types/jest" "*"
+    "@types/node" "*"
+
 "@types/jest@*", "@types/jest@^26.0.15":
   version "26.0.15"
   resolved "https://registry.yarnpkg.com/@types/jest/-/jest-26.0.15.tgz#12e02c0372ad0548e07b9f4e19132b834cb1effe"
@@ -1632,6 +1640,11 @@
   version "0.0.29"
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha1-7ihweulOEdK4J7y+UnC86n8+ce4=
+
+"@types/lodash@^4.14.165":
+  version "4.14.165"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.165.tgz#74d55d947452e2de0742bad65270433b63a8c30f"
+  integrity sha512-tjSSOTHhI5mCHTy/OOXYIhi2Wt1qcbHmuXD1Ha7q70CgI/I71afO4XtLb/cVexki1oVYchpul/TOuu3Arcdxrg==
 
 "@types/minimatch@*":
   version "3.0.3"
@@ -6286,6 +6299,11 @@ jest-haste-map@^26.6.1:
     walker "^1.0.7"
   optionalDependencies:
     fsevents "^2.1.2"
+
+jest-in-case@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/jest-in-case/-/jest-in-case-1.0.2.tgz#56744b5af33222bd0abab70cf919f1d170ab75cc"
+  integrity sha1-VnRLWvMyIr0KurcM+Rnx0XCrdcw=
 
 jest-jasmine2@^26.6.1:
   version "26.6.1"

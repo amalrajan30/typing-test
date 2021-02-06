@@ -1,38 +1,67 @@
 .App {
+  width: 100%;
   text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.typing-card {
+  width: 60%;
+  padding: 40px;
+  margin-top: 40px;
+  box-shadow: 4px 4px 6px 6px rgba(154, 211, 188, 0.5);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.liveResult {
+  display: flex;
+  margin-bottom: 20px;
+  justify-content: space-evenly;
+  font-size: 30px;
+}
+
+.typing-area {
+  text-align: left;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.word {
+	display: flex;
+}
+
+.letter {
+  min-width: 20px;
+  max-width: 35px;
+  text-align: center;
+  font-size: 35px;
+  font-weight: 400;
+  font-family: 'Noto Sans KR', sans-serif;
+  padding: 2px;
+  letter-spacing: 2px;
+  outline: 1px solid #ffffff;
+}
+
+.current {
+  background: rgba(196, 182, 182, 0.4);
+}
+
+.correct {
+  background: #d3e6fb;
+  color: #004f80;
+}
+
+.wrong {
+  background: rgba(255, 124, 124, 0.5);
+  color: darkred;
+}
+
+#wrongLetterVisible {
+  transition-duration: 0.5s;
+  transition-timing-function: ease-in-out;
+}
+
+#wrongLetterInvisible {
+  display: none;
+  transition-duration: 0.5s;
+  transition-timing-function: ease-in-out;
 }

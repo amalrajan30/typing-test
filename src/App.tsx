@@ -1,26 +1,17 @@
-import React from 'react';
-import logo from './logo.svg';
+import * as React from 'react';
 import './App.css';
+import Typing from './components/Typing';
+import CommonWords from './data/commonWords.json'
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+	const [currentWords, setCurrentWords] = React.useState(20)
+	const words = CommonWords.commonWords.sort(() => 0.5 - Math.random()).slice(0, 200).map(word => `${word} `)
+
+	return (
+		<div className="App">
+			<Typing typingPara={words.slice(0, currentWords)} words={true} />
+		</div>
+	);
 }
 
 export default App;
