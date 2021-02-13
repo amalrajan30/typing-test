@@ -7,8 +7,8 @@ jest.useFakeTimers()
 
 describe('Typing', () => {
 	test('should render typing component', () => {
-		const testPara = 'Hello There'
-		render(<TypingTest typingPara={testPara} />)
+		const testPara = ['Hello', 'There']
+		render(<TypingTest typingPara={testPara} words={true} />)
 		const typingArea = screen.getByTestId(/typing-area/i)
 		user.type(typingArea, "Hll")
 		jest.runAllTimers()
@@ -20,16 +20,15 @@ describe('Typing', () => {
 	})
 
 	test('should be able to correct mistakes', () => {
-		render(<TypingTest typingPara="Hello again" />)
+		render(<TypingTest typingPara={["Hello", "again"]} words={true} />)
 		const typingArea = screen.getByTestId(/typing-area/i)
 		user.type(typingArea, "Hwll")
-		fireEvent.keyDown(typingArea, { key: 'Backspace' })
-		fireEvent.keyDown(typingArea, { key: 'Backspace' })
+		user.type(typingArea, '{backspace}{backspace}')
 		expect(screen.getAllByTestId(/typing-correct/i).length).toBe(1)
 	})
 
 	test('calculate wpm', async () => {
-		render(<TypingTest typingPara="Hello again" />)
+		render(<TypingTest typingPara={["Hello", "again"]} words={true} />)
 		await user.type(screen.getByTestId(/typing-area/i), "Hello again")
 	})
 
