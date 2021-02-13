@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as R from 'ramda'
 import findIndex from 'lodash/findIndex'
 type typingProps = {
 	typingPara: string[],
@@ -6,26 +7,52 @@ type typingProps = {
 	wordsCount?: number
 }
 
-type positon = {
+type position = {
 	word: number,
 	letter: number
 }
 
-const defaultPosition: positon = {
+interface Stats {
+	totalWords: number,
+	totalLetters: number,
+	wrongLetters: number,
+}
+
+interface CharStats {
+	typed: string,
+	valid: boolean,
+	delay: number
+}
+
+const defaultPosition: position = {
 	word: 0,
 	letter: 0
 }
 export default function Typing(props: typingProps) {
 	const { typingPara } = props
-	const [currentPos, changePos] = useAsyncRef<positon>(defaultPosition)
-	const [correct, changeCorrect] = useAsyncRef<positon[]>([])
-	const [wrongs, changeWrongs] = React.useState<positon[]>([])
+	const [currentPos, changePos] = React.useState<position>(defaultPosition)
+	const [correct, changeCorrect] = useAsyncRef<position[]>([])
+	const [wrongs, changeWrongs] = React.useState<position[]>([])
 	const [startTime, setStartTime] = React.useState<number>(0)
 	const [wrongLetter, setWrongLetter] = React.useState<string>()
 	const [speed, setSpeed] = React.useState<number>(0)
 	const [accuracy, setAccuracy] = React.useState<number>(0)
 	const [timer, setTimer] = React.useState<number>()
 	const [entries, setEntries] = useAsyncRef<number>(0)
+
+	const getCurrentLetter = () => currentPos.letter
+	const getCurrentWord = () => currentPos.word
+	const isThePressedKeyCorrect = (key: string) => key === typingPara[getCurrentWord()][getCurrentLetter()]
+	const isLastLetter = () => getCurrentLetter() === typingPara[getCurrentWord()].length - 1
+	const nextWord = (currentWord: number) => () => changePos({ word: currentWord + 1, letter: 0 })
+	const nextLetter = (currentLetter: number) => () => changePos({ word: getCurrentWord(), letter: currentLetter + 1 })
+	const previousWord = (currentWord: number) => ({ word: currentWord - 1, letter: typingPara[currentWord - 1].length - 1 })
+	const previousLetter = (currentLetter: number) => ({ word: getCurrentWord(), letter: currentLetter - 1 })
+	const reachedEnd = () => getCurrentWord() + 1 === typingPara.length && typingPara[getCurrentWord()].length === getCurrentLetter() + 1
+	const isVeryFirstLetter = () => getCurrentWord() === 0 && getCurrentLetter() === 0
+
+	const notRequiredKeys = ['Alt', 'Control', 'Tab', 'Shift', 'Enter', 'OS', 'CapsLock', 'Escape', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'ArrowDown']
+	const notConcernedKey = (e: React.KeyboardEvent) => notRequiredKeys.includes(e.key)
 
 	React.useEffect(() => {
 		if (wrongLetter) {
@@ -63,85 +90,97 @@ export default function Typing(props: typingProps) {
 	const startCalculating = () => {
 		return setInterval(() => {
 			const result = calculateSpeedAndAccuracy(startTime, entries.current, correct.current.length)
-			console.log(`calculation args: ${startTime}, ${entries.current} `)
+			// console.log(`calculation args: ${startTime}, ${entries.current} `)
 			setSpeed(result.speed)
 			setAccuracy(result.accuracy)
 		}, 1500)
 	}
 
+	const onKeyUp = (e: React.KeyboardEvent<HTMLDivElement>): void => {
+		if (notConcernedKey(e)) return
+		e.key === 'Backspace' ? handleBackSpace() : handleTyping(e)
+	}
 
-	const onKeyPress = (e: React.KeyboardEvent<HTMLDivElement>): void => {
-		if (currentPos.current.word >= typingPara.length) {
+	const handleTyping = (e: React.KeyboardEvent<HTMLElement>): void => {
+		if (getCurrentWord() >= typingPara.length) {
 			return
 		}
-		if (currentPos.current.word === 0 && currentPos.current.letter === 0) {
+		if (getCurrentWord() === 0 && getCurrentLetter() === 0) {
 			setStartTime(performance.now())
 			const timerId = startCalculating()
 			setTimer(timerId as unknown as number)
-		} else if (currentPos.current.word + 1 === typingPara.length && typingPara[currentPos.current.word].length === currentPos.current.letter + 1) {
-			let speedAndAccuracy: speedAndAccuracy
+		} else if (reachedEnd()) {
+			const getSpeedAndAccuracy = R.partial(calculateSpeedAndAccuracy, [startTime, entries.current + 1])
 			clearInterval(timer)
 			console.log('timer cleared from onKeyPress', timer)
-			e.key === typingPara[currentPos.current.letter]
-				? speedAndAccuracy = calculateSpeedAndAccuracy(startTime, typingPara.length, correct.current.length + 1)
-				: speedAndAccuracy = calculateSpeedAndAccuracy(startTime, typingPara.length, correct.current.length)
+			const speedAndAccuracy = e.key === typingPara[getCurrentLetter()]
+				? getSpeedAndAccuracy(correct.current.length + 1)
+				: getSpeedAndAccuracy(correct.current.length)
 			setSpeed(speedAndAccuracy.speed)
 			setAccuracy(speedAndAccuracy.accuracy)
 		}
-		if (e.key === typingPara[currentPos.current.word][currentPos.current.letter]) {
-			changeCorrect([...correct.current, currentPos.current])
+
+		if (isThePressedKeyCorrect(e.key)) {
+			changeCorrect([...correct.current, currentPos])
 		} else {
 			setWrongLetter(e.key)
-			const current = currentPos.current
+			const current = currentPos
 			changeWrongs(wrongs => [...wrongs, current])
 		}
 
-		if (currentPos.current.letter === typingPara[currentPos.current.word].length - 1) {
-			changePos({ word: currentPos.current.word + 1, letter: 0 })
-		} else changePos({ word: currentPos.current.word, letter: currentPos.current.letter + 1 })
+		isLastLetter() ? nextWord(getCurrentWord())() : nextLetter(getCurrentLetter())()
 
 		setEntries(entries.current + 1)
 	}
 
-	const onKeyDown = (e: React.KeyboardEvent): void => {
-		// debugger
-		if (e.key === 'Backspace' && currentPos.current.word > 0) {
-			let position: positon
-			if (currentPos.current.letter === 0) {
-				position = { word: currentPos.current.word - 1, letter: typingPara[currentPos.current.word - 1].length - 1 }
-			} else position = { word: currentPos.current.word, letter: currentPos.current.letter - 1 }
-			changePos(position)
-			if (correct.current.includes(position)) {
-				const index = correct.current.indexOf(position)
-				changeCorrect(correct.current.slice(0, index))
-			} else {
-				const index = wrongs.indexOf(position)
-				changeWrongs(wrong => wrong.slice(0, index))
-			}
-			setEntries(entries.current - 1)
-		}
+
+	const handleBackSpace = (): void => {
+		if (reachedEnd() || isVeryFirstLetter()) return
+		const newPosition = getCurrentLetter() === 0
+			? previousWord(getCurrentWord())
+			: previousLetter(getCurrentLetter())
+		changePos(newPosition)
+		R.includes(newPosition, correct.current)
+			? changeCorrect(R.slice(0, R.indexOf(newPosition, correct.current), correct.current))
+			: changeWrongs(R.slice(0, R.indexOf(newPosition, wrongs), wrongs))
+
+		setEntries(entries.current - 1)
 	}
+
+	const resetStats = (): void => {
+		setStartTime(0)
+		setSpeed(0)
+		setAccuracy(0)
+		changePos(defaultPosition)
+		changeCorrect([])
+		changeWrongs([])
+		setEntries(0)
+		clearInterval(timer)
+	}
+
+
 	return (
 		<div className="typing-card">
 			<div className="liveResult">
 				<div>Speed: {speed}<sup style={{ fontSize: '16px' }}>WPM</sup></div>
 				<div>Accuracy: {accuracy}%</div>
+				<button onClick={resetStats}>Restart</button>
 			</div>
-			<div data-testid="typing-area" onKeyDown={onKeyDown} onKeyPress={onKeyPress} tabIndex={0} className='typing-area'>
+			<div data-testid="typing-area" onKeyUp={onKeyUp} tabIndex={0} className='typing-area'>
 				{
 					typingPara.map((word, wordIndex) => (
 						<span key={wordIndex} className="word">
 							{
 								[...word].map((letter, letterIndex) => {
-									const pos: positon = { word: wordIndex, letter: letterIndex }
-									if (wordIndex === currentPos.current.word && letterIndex === currentPos.current.letter) {
+									const pos: position = { word: wordIndex, letter: letterIndex }
+									if (wordIndex === getCurrentWord() && letterIndex === getCurrentLetter()) {
 										return <span key={`${wordIndex}-${letterIndex}`} data-testid="typing-current" className="letter current">{letter}</span>
 									} else if (findIndex(correct.current, pos) !== -1) {
 										return <span key={`${wordIndex}-${letterIndex}`} data-testid="typing-correct" className="letter correct">{letter}</span>
 									} else if (findIndex(wrongs, pos) !== -1) {
 										return (
 											<>
-												{wrongLetter && currentPos.current.word === wordIndex && currentPos.current.letter - 1 === letterIndex
+												{wrongLetter && getCurrentWord() === wordIndex && getCurrentLetter() - 1 === letterIndex
 													? <span key={`wrong-${wordIndex}- ${letterIndex}`} className="letter wrong">{wrongLetter}</span>
 													: <span key={`${wordIndex}-${letterIndex}`} data-testid="typing-wrong" className="letter wrong">
 														{letter}
