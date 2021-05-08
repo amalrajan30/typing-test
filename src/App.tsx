@@ -5,9 +5,9 @@ import {TypingArea} from './components/TypingArea'
 import CommonWords from './data/commonWords.json'
 
 export interface Words {
-  letters: Chars[]
+  letters: Char[]
 }
-export interface Chars {
+export interface Char {
   char: string
   index: number
   wordIndex: number
@@ -16,13 +16,13 @@ export interface Chars {
 }
 function App() {
   const [currentWords, setCurrentWords] = React.useState(20)
-  const createChars = (para: string): Chars[] => {
+  const createChars = (para: string): Char[] => {
     return [...para].reduce(function createCharsReducer(
-      acc: Chars[],
+      acc: Char[],
       current,
       index,
     ) {
-      const temp: Chars = {
+      const temp: Char = {
         wordIndex: 0,
         char: current,
         index: index,
@@ -67,7 +67,7 @@ function App() {
   return (
     <div className="App">
       {/* <Typing typingPara={words.slice(0, currentWords)} words={true} /> */}
-      <TypingArea typings={typings} />
+      <TypingArea words={typings} />
     </div>
   )
 }
