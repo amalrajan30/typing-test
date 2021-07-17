@@ -1,4 +1,4 @@
-import * as React from 'react'
+import {useState} from 'react'
 import './App.css'
 import Typing from './components/Typing'
 import {TypingArea} from './components/TypingArea'
@@ -15,7 +15,7 @@ export interface Char {
   valid: boolean
 }
 function App() {
-  const [currentWords, setCurrentWords] = React.useState(20)
+  const [currentWords, setCurrentWords] = useState(20)
   const createChars = (para: string): Char[] => {
     return [...para].reduce(function createCharsReducer(
       acc: Char[],
@@ -62,12 +62,15 @@ function App() {
     .slice(0, 20)
     .map(word => `${word} `)
   // const chars = createChars(words)
-  const typings = createTypings(words)
+  const [typings, setTypings] = useState(() => createTypings(words))
 
   return (
     <div className="App">
       {/* <Typing typingPara={words.slice(0, currentWords)} words={true} /> */}
-      <TypingArea words={typings} />
+      <TypingArea
+        words={typings}
+        getNew={() => setTypings(createTypings(words))}
+      />
     </div>
   )
 }
