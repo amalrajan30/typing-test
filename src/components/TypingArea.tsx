@@ -1,13 +1,13 @@
 import * as React from 'react'
 import {flatten} from 'ramda'
 import FocusLock from 'react-focus-lock'
-import {Char, Words} from '../App'
+import {Char, Word} from '../utils/typings'
 import Letter from './Letter'
 import {LiveResult} from './LiveResult'
 
-export function TypingArea(props: {words: Words[]; getNew: () => void}) {
+export function TypingArea(props: {words: Word[]; getNew: () => void}) {
   const {words, getNew} = props
-  const [allTypings, changeAllTypings] = React.useState<Words[]>([])
+  const [allTypings, changeAllTypings] = React.useState<Word[]>([])
   const [position, changePosition] = React.useState(0)
   const [wronglyTyped, changeWronglyTyped] = React.useState<
     undefined | string
@@ -16,7 +16,6 @@ export function TypingArea(props: {words: Words[]; getNew: () => void}) {
   const [correctCount, setCorrectCount] = React.useState(0)
   const [speed, setSpeed] = React.useState(0)
   const [accuracy, setAccuracy] = React.useState(0)
-  // const [intervalTimer, setIntervalTimer] = React.useState<any>()
   const inputRef = React.useRef<HTMLInputElement>(null)
 
   React.useEffect(() => {
