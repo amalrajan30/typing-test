@@ -1,15 +1,29 @@
 .App {
-  width: 100%;
   text-align: center;
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-rows: 5rem auto 6rem;
+  height: 100%;
+  row-gap: 3rem;
+}
+
+.button {
+  font-size: 1rem;
+  color: #000;
+  text-decoration: none;
+  padding: 12px;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease-in-out;
 }
 
 .typing-card {
-  width: 60%;
+  width: 55%;
   padding: 40px;
-  margin-top: 40px;
+  margin: auto;
   box-shadow: 4px 4px 6px 6px rgba(154, 211, 188, 0.5);
+  grid-row-start: 2;
+  grid-row-end: 3;
 }
 
 .liveResult {
@@ -23,6 +37,8 @@
   text-align: left;
   display: flex;
   flex-wrap: wrap;
+  height: 13.5rem;
+  overflow: hidden;
 }
 
 .word {
@@ -39,6 +55,7 @@
   padding: 2px;
   letter-spacing: 2px;
   outline: 1px solid #ffffff;
+  line-height: normal;
 }
 
 .current {
