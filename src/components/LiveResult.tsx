@@ -3,18 +3,17 @@ export function LiveResult({
   accuracy,
   reset,
 }: {
-  speed: number
-  accuracy: number
+  speed: string
+  accuracy: string
   reset: () => void
 }) {
   return (
     <div className="liveResult">
-      <div>
-        Speed: {speed}
-        <sup style={{fontSize: '16px'}}>WPM</sup>
-      </div>
-      <div>Accuracy: {accuracy}%</div>
-      <button onClick={reset}>Restart</button>
+      <div>Speed: {speed}</div>
+      <div>Accuracy: {accuracy}</div>
+      <button className="button" onClick={reset}>
+        Restart
+      </button>
     </div>
   )
 }
