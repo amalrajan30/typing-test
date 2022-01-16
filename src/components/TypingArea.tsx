@@ -5,8 +5,28 @@ import {Char, Word} from '../utils/typings'
 import Letter from './Letter'
 import {LiveResult} from './LiveResult'
 
-export function TypingArea(props: {words: Word[]; getNew: () => void}) {
-  const {words, getNew} = props
+export function TypingArea(props: {
+  words: Word[]
+  getNew: () => void
+  showResult: (show: boolean) => void
+  speed: string
+  setSpeed: (speed: string) => void
+  accuracy: string
+  setAccuracy: (accuracy: string) => void
+  reset: boolean
+  changeReset: (reset: boolean) => void
+}) {
+  const {
+    words,
+    getNew,
+    showResult,
+    speed,
+    setSpeed,
+    accuracy,
+    setAccuracy,
+    reset,
+    changeReset,
+  } = props
   const [allTypings, changeAllTypings] = React.useState<Word[]>([])
   const [position, changePosition] = React.useState(0)
   const [wronglyTyped, changeWronglyTyped] = React.useState<
@@ -14,8 +34,9 @@ export function TypingArea(props: {words: Word[]; getNew: () => void}) {
   >()
   const [startTime, setStartTime] = React.useState(0)
   const [correctCount, setCorrectCount] = React.useState(0)
-  const [speed, setSpeed] = React.useState(0)
-  const [accuracy, setAccuracy] = React.useState(0)
+  const [wordsToRemove, changeWordsToRemove] = React.useState<
+    (string | null)[]
+  >([])
   const inputRef = React.useRef<HTMLInputElement>(null)
 
   React.useEffect(() => {
@@ -28,6 +49,32 @@ export function TypingArea(props: {words: Word[]; getNew: () => void}) {
     }, 200)
   }, [wronglyTyped])
 
+  React.useEffect(() => {
+    const wordsElm = document.querySelectorAll('.word')
+    if (wordsElm.length === 0) return
+    const wordElmHeight = wordsElm[0].getBoundingClientRect().height
+    const wordTop = wordsElm[0].getBoundingClientRect().top
+    const lastWordTop = wordsElm[wordsElm.length - 1].getBoundingClientRect()
+      .top
+    const bottomLineTop = wordTop + wordElmHeight * 3
+    const currentLetter = document.querySelector('.current')
+    // we don't want to remove words if the user has reached the end
+    if (lastWordTop <= bottomLineTop) return
+    if (
+      currentLetter &&
+      currentLetter.getBoundingClientRect().top >= bottomLineTop
+    ) {
+      const remove: (string | null)[] = []
+      for (let i = 0; i < wordsElm.length; i++) {
+        if (wordsElm[i].getBoundingClientRect().top === wordTop) {
+          remove.push(wordsElm[i].getAttribute('id'))
+        }
+      }
+      console.log({remove})
+      changeWordsToRemove([...wordsToRemove, ...remove])
+    }
+  }, [position, wordsToRemove])
+
   const chars = flatten(words.map(word => word.letters))
 
   const calculateSpeedAndAccuracy = React.useCallback(() => {
@@ -35,9 +82,9 @@ export function TypingArea(props: {words: Word[]; getNew: () => void}) {
     const time = (performance.now() - startTime) / 60000
     const speed = Math.floor((position / 5 - uncorrectedErrors) / time)
     const accuracy = Math.floor((correctCount / position) * 100)
-    setSpeed(speed)
-    setAccuracy(accuracy)
-  }, [correctCount, position, startTime])
+    setSpeed(`${speed}wpm`)
+    setAccuracy(`${accuracy}%`)
+  }, [correctCount, position, setAccuracy, setSpeed, startTime])
 
   React.useEffect(() => {
     if (position > 5) {
@@ -45,14 +92,18 @@ export function TypingArea(props: {words: Word[]; getNew: () => void}) {
     }
   }, [calculateSpeedAndAccuracy, position])
 
-  const reset = () => {
-    getNew()
-    changePosition(0)
-    setCorrectCount(0)
-    setStartTime(0)
-    setAccuracy(0)
-    setSpeed(0)
-  }
+  React.useEffect(() => {
+    if (reset) {
+      getNew()
+      changePosition(0)
+      setCorrectCount(0)
+      changeWordsToRemove([])
+      setStartTime(0)
+      setAccuracy('0%')
+      setSpeed('0wpm')
+      changeReset(false)
+    }
+  }, [getNew, reset, setAccuracy, setSpeed, changeReset])
 
   const changeLetterState = (
     typedLetter: string,
@@ -95,6 +146,8 @@ export function TypingArea(props: {words: Word[]; getNew: () => void}) {
     if (!(e.nativeEvent as any).data) return
     const currentChar = chars[position] // currently typed letter
     if (!currentChar) {
+      console.log('reached end of text')
+      showResult(true)
       calculateSpeedAndAccuracy()
       return
     }
@@ -118,10 +171,14 @@ export function TypingArea(props: {words: Word[]; getNew: () => void}) {
   return (
     <main className="typing-card">
       <section>
-        <LiveResult reset={reset} accuracy={accuracy} speed={speed} />
+        <LiveResult
+          reset={() => changeReset(true)}
+          accuracy={accuracy}
+          speed={speed}
+        />
       </section>
       <section
-        className="typing-area word"
+        className="typing-area"
         onClick={() => inputRef.current?.focus()}
         tabIndex={0}
       >
@@ -137,18 +194,25 @@ export function TypingArea(props: {words: Word[]; getNew: () => void}) {
             ref={inputRef}
           />
         </FocusLock>
-        {allTypings.map(word => (
-          <span className="word">
-            {word.letters.map((letter, index) => (
-              <Letter
-                key={`${index}-${letter.char}`}
-                letter={letter}
-                position={position}
-                wrongLetter={wronglyTyped}
-              />
-            ))}
-          </span>
-        ))}
+        {allTypings
+          .filter(
+            word => !wordsToRemove.includes(word.letters[0].index.toString()),
+          )
+          .map(word => {
+            const wordKey = word.letters[0].index.toString()
+            return (
+              <span key={wordKey} id={wordKey} className="word">
+                {word.letters.map((letter, index) => (
+                  <Letter
+                    key={`${index}-${letter.char}`}
+                    letter={letter}
+                    position={position}
+                    wrongLetter={wronglyTyped}
+                  />
+                ))}
+              </span>
+            )
+          })}
       </section>
     </main>
   )
