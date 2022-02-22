@@ -5,9 +5,9 @@ import {Char, Word} from '../utils/typings'
 import Letter from './Letter'
 import {LiveResult} from './LiveResult'
 
-export function TypingArea(props: {
+interface TypingAreaProps {
   words: Word[]
-  getNew: () => void
+  getNew: (charsLength?: number, wordsLength?: number) => void
   showResult: (show: boolean) => void
   speed: string
   setSpeed: (speed: string) => void
@@ -15,7 +15,12 @@ export function TypingArea(props: {
   setAccuracy: (accuracy: string) => void
   reset: boolean
   changeReset: (reset: boolean) => void
-}) {
+  isSettingsOpen: boolean
+  testType: string
+  setStartedTyping: (startedTyping: boolean) => void
+}
+
+export function TypingArea(props: TypingAreaProps) {
   const {
     words,
     getNew,
@@ -26,6 +31,9 @@ export function TypingArea(props: {
     setAccuracy,
     reset,
     changeReset,
+    isSettingsOpen,
+    testType,
+    setStartedTyping,
   } = props
   const [allTypings, changeAllTypings] = React.useState<Word[]>([])
   const [position, changePosition] = React.useState(0)
@@ -50,6 +58,12 @@ export function TypingArea(props: {
   }, [wronglyTyped])
 
   React.useEffect(() => {
+    if (startTime) {
+      setStartedTyping(true)
+    }
+  }, [startTime, setStartedTyping])
+
+  React.useEffect(() => {
     const wordsElm = document.querySelectorAll('.word')
     if (wordsElm.length === 0) return
     const wordElmHeight = wordsElm[0].getBoundingClientRect().height
@@ -59,7 +73,12 @@ export function TypingArea(props: {
     const bottomLineTop = wordTop + wordElmHeight * 3
     const currentLetter = document.querySelector('.current')
     // we don't want to remove words if the user has reached the end
-    if (lastWordTop <= bottomLineTop) return
+    if (lastWordTop <= bottomLineTop) {
+      if (testType === 'time') {
+        getNew(chars.length, words.length)
+      }
+      return
+    }
     if (
       currentLetter &&
       currentLetter.getBoundingClientRect().top >= bottomLineTop
@@ -76,6 +95,8 @@ export function TypingArea(props: {
   }, [position, wordsToRemove])
 
   const chars = flatten(words.map(word => word.letters))
+
+  console.log(`TypingArea:`, {chars: chars.length, words: words.length})
 
   const calculateSpeedAndAccuracy = React.useCallback(() => {
     const uncorrectedErrors = position - correctCount
@@ -101,9 +122,10 @@ export function TypingArea(props: {
       setStartTime(0)
       setAccuracy('0%')
       setSpeed('0wpm')
+      setStartedTyping(false)
       changeReset(false)
     }
-  }, [getNew, reset, setAccuracy, setSpeed, changeReset])
+  }, [getNew, reset, setAccuracy, setSpeed, changeReset, setStartedTyping])
 
   const changeLetterState = (
     typedLetter: string,
@@ -111,30 +133,29 @@ export function TypingArea(props: {
     currentLetter: Char,
   ) => {
     // Finding the current letter and changing its sate
-    const typedWord = allTypings[currentLetter.wordIndex].letters.map(
-      letter => {
-        if (letter.index === currentLetter.index) {
-          if (type === 'typed') {
-            letter.typed = true
-            letter.valid = typedLetter === currentLetter.char
-            setCorrectCount(
-              typedLetter === currentLetter.char
-                ? correctCount + 1
-                : correctCount,
-            )
-          } else {
-            letter.typed = false
-            setCorrectCount(letter.valid ? correctCount - 1 : correctCount)
-          }
-          return letter
+
+    const typedWord = words[currentLetter.wordIndex].letters.map(letter => {
+      if (letter.index === currentLetter.index) {
+        if (type === 'typed') {
+          letter.typed = true
+          letter.valid = typedLetter === currentLetter.char
+          setCorrectCount(
+            typedLetter === currentLetter.char
+              ? correctCount + 1
+              : correctCount,
+          )
         } else {
-          return letter
+          letter.typed = false
+          setCorrectCount(letter.valid ? correctCount - 1 : correctCount)
         }
-      },
-    )
+        return letter
+      } else {
+        return letter
+      }
+    })
 
     // find currently typed word and update it's state
-    const newTypings = allTypings.map(word =>
+    const newTypings = words.map(word =>
       word.letters[0].wordIndex === currentLetter.wordIndex
         ? {letters: typedWord}
         : word,
@@ -182,19 +203,22 @@ export function TypingArea(props: {
         onClick={() => inputRef.current?.focus()}
         tabIndex={0}
       >
-        <FocusLock>
-          <input
-            placeholder="Typing area"
-            style={{position: 'fixed', top: '-30px'}}
-            type="text"
-            name="test-input"
-            autoFocus={true}
-            onChange={onChange}
-            onKeyDown={onKeyDown}
-            ref={inputRef}
-          />
-        </FocusLock>
-        {allTypings
+        {!isSettingsOpen ? (
+          <FocusLock>
+            <input
+              data-no-focus-lock
+              placeholder="Typing area"
+              style={{position: 'fixed', top: '-30px'}}
+              type="text"
+              name="test-input"
+              autoFocus={true}
+              onChange={onChange}
+              onKeyDown={onKeyDown}
+              ref={inputRef}
+            />
+          </FocusLock>
+        ) : null}
+        {words
           .filter(
             word => !wordsToRemove.includes(word.letters[0].index.toString()),
           )

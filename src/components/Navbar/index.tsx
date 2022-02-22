@@ -1,11 +1,17 @@
 import './style.css'
 
-function NavBar() {
+interface NavBarProps {
+  openSettings: () => void
+}
+
+function NavBar({openSettings}: NavBarProps) {
   return (
     <header className="header">
       <div>
         <h1>Typing Test</h1>
-        <button className="button">Config</button>
+        <button onClick={() => openSettings()} className="button">
+          Config
+        </button>
       </div>
     </header>
   )

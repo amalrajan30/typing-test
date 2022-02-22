@@ -18,17 +18,21 @@ export interface Char {
   valid: boolean
 }
 
-const getRandomWords = (): string[] =>
+const getRandomWords = (length: number): string[] =>
   CommonWords.commonWords
     .sort(() => 0.5 - Math.random())
-    .slice(0, 30)
+    .slice(0, length)
     .map(word => `${word} `)
 
 // Generate typing words
-export const getTypings = (): Word[] => {
-  const words = getRandomWords()
-  let index = 0
-  return words.map((word, wordIndex) => {
+export const getTypings = (
+  length: number,
+  index = 0,
+  currentWordsLength = 0,
+): Word[] => {
+  const words = getRandomWords(length)
+  return words.map((word, i) => {
+    const wordIndex = i + currentWordsLength
     const currentWord = wordIndex === words.length - 1 ? word.trim() : word
     return {
       letters: [...currentWord].map(letter => {
