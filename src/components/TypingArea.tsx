@@ -4,6 +4,7 @@ import FocusLock from 'react-focus-lock'
 import {Char, Word} from '../utils/typings'
 import Letter from './Letter'
 import {LiveResult} from './LiveResult'
+import {useInterval} from '../utils/hooks'
 
 interface TypingAreaProps {
   words: Word[]
@@ -96,22 +97,20 @@ export function TypingArea(props: TypingAreaProps) {
 
   const chars = flatten(words.map(word => word.letters))
 
-  console.log(`TypingArea:`, {chars: chars.length, words: words.length})
-
   const calculateSpeedAndAccuracy = React.useCallback(() => {
     const uncorrectedErrors = position - correctCount
     const time = (performance.now() - startTime) / 60000
     const speed = Math.floor((position / 5 - uncorrectedErrors) / time)
     const accuracy = Math.floor((correctCount / position) * 100)
-    setSpeed(`${speed}wpm`)
+    setSpeed(`${speed <= 0 ? 0 : speed}wpm`)
     setAccuracy(`${accuracy}%`)
   }, [correctCount, position, setAccuracy, setSpeed, startTime])
 
-  React.useEffect(() => {
+  useInterval(() => {
     if (position > 5) {
       calculateSpeedAndAccuracy()
     }
-  }, [calculateSpeedAndAccuracy, position])
+  }, 1000)
 
   React.useEffect(() => {
     if (reset) {
