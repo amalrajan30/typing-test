@@ -22,6 +22,8 @@ function App() {
     setTestType(type)
     setTestLength(length)
     setTypings(getTypings(length))
+    setReset(true)
+    setShowResult(false)
   }
 
   const getNew = (charsLength = 0, wordsLength = 0) => {
