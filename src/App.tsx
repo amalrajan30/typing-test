@@ -5,11 +5,12 @@ import NavBar from './components/Navbar'
 import Footer from './components/Footer'
 import Result from './components/Result'
 import SettingsModal from './components/SettingsModal'
+import {useInterval} from './utils/hooks'
 import './App.css'
 
 function App() {
   const [showResult, setShowResult] = useState(false)
-  const [speed, setSpeed] = useState('0wpm')
+  const [speed, setSpeed] = useState('0')
   const [accuracy, setAccuracy] = useState('0%')
   const [reset, setReset] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
@@ -17,6 +18,13 @@ function App() {
   const [testLength, setTestLength] = useState(60)
   const [typings, setTypings] = useState(() => getTypings(testLength))
   const [startedTyping, setStartedTyping] = useState(false)
+  const [remainingSeconds, setRemainingSeconds] = useState(testLength)
+
+  useInterval(() => {
+    if (startedTyping && remainingSeconds) {
+      setRemainingSeconds(remainingSeconds - 1)
+    }
+  }, 1000)
 
   const handleSettingsChange = (type: string, length: number) => {
     setTestType(type)
@@ -35,6 +43,7 @@ function App() {
       ])
     } else {
       setTypings(getTypings(length))
+      setRemainingSeconds(testLength)
     }
   }
 
@@ -72,16 +81,16 @@ function App() {
           isSettingsOpen={isSettingsOpen}
           testType={testType}
           setStartedTyping={setStartedTyping}
+          remainingSeconds={remainingSeconds}
         />
       )}
 
+      <Footer />
       <SettingsModal
         open={isSettingsOpen}
         onDismiss={() => setIsSettingsOpen(false)}
         changeSettings={handleSettingsChange}
       />
-
-      <Footer />
     </div>
   )
 }

@@ -12,11 +12,11 @@ function Result(props: IResultProps) {
     <main className="result">
       <section>
         <span>
-          <h3>Speed:</h3>
-          <span>{speed}</span>
+          <h3>Speed</h3>
+          <span>{speed}wpm</span>
         </span>
         <span>
-          <h3>Accuracy:</h3>
+          <h3>Accuracy</h3>
           <span>{accuracy}</span>
         </span>
       </section>

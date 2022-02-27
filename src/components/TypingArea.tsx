@@ -19,6 +19,7 @@ interface TypingAreaProps {
   isSettingsOpen: boolean
   testType: string
   setStartedTyping: (startedTyping: boolean) => void
+  remainingSeconds: number
 }
 
 export function TypingArea(props: TypingAreaProps) {
@@ -35,6 +36,7 @@ export function TypingArea(props: TypingAreaProps) {
     isSettingsOpen,
     testType,
     setStartedTyping,
+    remainingSeconds,
   } = props
   const [allTypings, changeAllTypings] = React.useState<Word[]>([])
   const [position, changePosition] = React.useState(0)
@@ -102,7 +104,7 @@ export function TypingArea(props: TypingAreaProps) {
     const time = (performance.now() - startTime) / 60000
     const speed = Math.floor((position / 5 - uncorrectedErrors) / time)
     const accuracy = Math.floor((correctCount / position) * 100)
-    setSpeed(`${speed <= 0 ? 0 : speed}wpm`)
+    setSpeed(`${speed <= 0 ? 0 : speed}`)
     setAccuracy(`${accuracy}%`)
   }, [correctCount, position, setAccuracy, setSpeed, startTime])
 
@@ -120,7 +122,7 @@ export function TypingArea(props: TypingAreaProps) {
       changeWordsToRemove([])
       setStartTime(0)
       setAccuracy('0%')
-      setSpeed('0wpm')
+      setSpeed('0')
       setStartedTyping(false)
       changeReset(false)
     }
@@ -195,6 +197,8 @@ export function TypingArea(props: TypingAreaProps) {
           reset={() => changeReset(true)}
           accuracy={accuracy}
           speed={speed}
+          remainingSeconds={remainingSeconds}
+          testType={testType}
         />
       </section>
       <section
